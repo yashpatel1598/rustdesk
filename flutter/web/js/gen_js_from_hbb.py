@@ -6,15 +6,10 @@ import glob
 from tabnanny import check
 
 def pad_start(s, n, c = ' '):
-   if len(s) >= n:
-      return s
-   return c * (n - len(s)) + s
+   return s if len(s) >= n else c * (n - len(s)) + s
 
 def safe_unicode(s):
-   res = ""
-   for c in s:
-      res += r"\u{}".format(pad_start(hex(ord(c))[2:], 4, '0'))
-   return res
+   return "".join(f"\u{pad_start(hex(ord(c))[2:], 4, '0')}" for c in s)
 
 def main():
    print('export const LANGS = {')
@@ -29,7 +24,7 @@ def main():
             assert(len(toks) == 2)
             a = toks[0][2:]
             b = toks[1][:-3]
-            print('    "%s": "%s",'%(safe_unicode(a), safe_unicode(b)))
+            print(f'    "{safe_unicode(a)}": "{safe_unicode(b)}",')
       print('  },')
    print('}')
    check_if_retry = ['', False]
@@ -60,7 +55,9 @@ def main():
          KEY_MAP[0] += '  "%s": "%s",\n'%(a, b)
    print()
    print('export function checkIfRetry(msgtype: string, title: string, text: string) {')
-   print('  return %s'%check_if_retry[0].replace('to_lowercase', 'toLowerCase').replace('contains', 'indexOf').replace('!', '').replace('")', '") < 0'))
+   print(
+       f"""  return {check_if_retry[0].replace('to_lowercase', 'toLowerCase').replace('contains', 'indexOf').replace('!', '').replace('")', '") < 0')}"""
+   )
    print(';}')
    print()
    print('export const KEY_MAP: any = {')
@@ -68,7 +65,7 @@ def main():
    print('}')
    for ln in open('../../../Cargo.toml', encoding='utf-8'):
       if ln.startswith('version ='):
-         print('export const ' + ln)
+         print(f'export const {ln}')
 
 
 def removeComment(ln):
